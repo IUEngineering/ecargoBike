@@ -56,6 +56,7 @@
         "ina228.h": "c",
         "binary_info.h": "c",
         "cstdint": "c",
-        "compare": "c"
+        "compare": "c",
+        "platform.h": "c"
     }
 }

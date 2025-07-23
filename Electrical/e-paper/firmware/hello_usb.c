@@ -50,6 +50,8 @@ int main() {
     while (true) {
         // printf("Hello, world!\n");
         pico_set_led(true);
+        printf("M: The voltage is: %f\n", ina228_voltage(&config));
+
         sleep_ms(250);
         pico_set_led(false);
         sleep_ms(250);
