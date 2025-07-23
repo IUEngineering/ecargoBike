@@ -40,8 +40,11 @@ if (TARGET tinyusb_device)
             hello_usb.c
             )
 
+    # Add the ina228 library to the build
+    add_subdirectory(libs/ina228)
+
     # pull in common dependencies
-    target_link_libraries(hello_usb pico_stdlib)
+    target_link_libraries(hello_usb pico_stdlib ina228 hardware_i2c)
 
     # enable usb output, disable uart output
     pico_enable_stdio_usb(hello_usb 1)
