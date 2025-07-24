@@ -116,3 +116,30 @@ float ina228_voltage(ina228_config *config){
 }
 
 
+uint32_t ina228_voltage_raw(ina228_config *config){ 
+    uint8_t regReadbusVoltage[3];
+    int32_t rawVoltage24 = 0;
+
+    reg_read(config->i2c, INA228_ADDRESS, INA228_VBUS, regReadbusVoltage, 3);
+    
+    // Assemble 24-bit signed integer
+    rawVoltage24 = (regReadbusVoltage[0] << 16) |
+                   (regReadbusVoltage[1] << 8)  |
+                   (regReadbusVoltage[2]);
+
+    return (uint32_t)rawVoltage24;
+}
+
+uint32_t ina228_current_raw(ina228_config *config){ 
+    uint8_t regReadbusCurrent[3];
+    int32_t rawCurrent24 = 0;
+
+    reg_read(config->i2c, INA228_ADDRESS, INA228_CURRENT, regReadbusCurrent, 3);
+    
+    // Assemble 24-bit signed integer
+    rawCurrent24 = (regReadbusCurrent[0] << 16) |
+                   (regReadbusCurrent[1] << 8)  |
+                   (regReadbusCurrent[2]);
+
+    return (uint32_t)rawCurrent24;
+}

@@ -57,6 +57,9 @@
         "binary_info.h": "c",
         "cstdint": "c",
         "compare": "c",
-        "platform.h": "c"
+        "platform.h": "c",
+        "cstddef": "c",
+        "can2040.h": "c",
+        "tusb.h": "c"
     }
 }

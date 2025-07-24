@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2 CACHE STRING "Board type")
+set(PICO_BOARD pico CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -33,6 +33,8 @@ project(voltage_measure C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+
+
 # Add executable. Default name is the project name, version 0.1
 
 if (TARGET tinyusb_device)
@@ -40,11 +42,21 @@ if (TARGET tinyusb_device)
             main.c
             )
 
-    # Add the ina228 library to the build
+    # Add libraries to the build
     add_subdirectory(libs/ina228)
+    add_subdirectory(libs/can)
+    pico_generate_pio_header(can2040 ${CMAKE_SOURCE_DIR}/libs/can/pio/can2040.pio)
+
 
     # pull in common dependencies
-    target_link_libraries(voltage_measure pico_stdlib ina228 hardware_i2c)
+    target_link_libraries(
+        voltage_measure 
+        pico_stdlib
+        ina228
+        hardware_i2c
+        can2040
+        cmsis_core
+        )
 
     # enable usb output, disable uart output
     pico_enable_stdio_usb(voltage_measure 1)

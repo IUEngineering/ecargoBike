@@ -41,6 +41,8 @@ typedef struct {
 void ina228_init(ina228_config *config);
 void ina228_reset(ina228_config *config);
 float ina228_voltage(ina228_config *config);
+uint32_t ina228_voltage_raw(ina228_config *config);
+uint32_t ina228_current_raw(ina228_config *config);
 int reg_write(i2c_inst_t *i2c, 
                 const uint addr, 
                 const uint8_t reg, 
