@@ -23,37 +23,48 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2 CACHE STRING "Board type")
+set(PICO_BOARD pico CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(hello_usb C CXX ASM)
+project(e-paper C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+
+
 # Add executable. Default name is the project name, version 0.1
 
 if (TARGET tinyusb_device)
-    add_executable(hello_usb
-            hello_usb.c
+    add_executable(e-paper
+            main.cpp
             )
 
-    # Add the ina228 library to the build
-    add_subdirectory(libs/ina228)
+    # Add libraries to the build
+    add_subdirectory(libs/epaper)
+    add_subdirectory(libs/can)
+    pico_generate_pio_header(can2040 ${CMAKE_SOURCE_DIR}/libs/can/pio/can2040.pio)
+
 
     # pull in common dependencies
-    target_link_libraries(hello_usb pico_stdlib ina228 hardware_i2c)
+    target_link_libraries(${PROJECT_NAME} PUBLIC 
+        pico_stdlib
+        hardware_i2c
+        can2040
+        cmsis_core
+        epaper
+        )
 
     # enable usb output, disable uart output
-    pico_enable_stdio_usb(hello_usb 1)
-    pico_enable_stdio_uart(hello_usb 0)
+    pico_enable_stdio_usb(e-paper 1)
+    pico_enable_stdio_uart(e-paper 0)
 
     # create map/bin/hex/uf2 file etc.
-    pico_add_extra_outputs(hello_usb)
+    pico_add_extra_outputs(e-paper)
 
     # add url via pico_set_program_url
 elseif(PICO_ON_DEVICE)
-    message("Skipping hello_usb because TinyUSB submodule is not initialized in the SDK")
+    message("Skipping e-paper because TinyUSB submodule is not initialized in the SDK")
 endif()
