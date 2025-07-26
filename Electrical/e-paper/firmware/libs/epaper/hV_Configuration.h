@@ -61,6 +61,8 @@
 // List of screens
 #include "hV_List_Screens.h"
 
+#include <string>
+
 // Checks
 #if (hV_LIST_CONSTANTS_RELEASE < 812)
 #error Required hV_LIST_CONSTANTS_RELEASE 812
@@ -119,8 +121,8 @@
 /// @brief Type for string
 /// @details Based on STRING_MODE selection
 ///
-#define STRING_TYPE String
-#define STRING_CONST_TYPE String
+#define STRING_TYPE std::string
+#define STRING_CONST_TYPE const std::string&
 
 #endif // hV_CONFIGURATION_RELEASE
 

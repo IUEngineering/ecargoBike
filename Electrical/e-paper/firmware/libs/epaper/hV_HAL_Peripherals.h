@@ -28,13 +28,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#define mySerial Serial
+// #define mySerial Serial
 
 #define HIGH    1
 #define LOW     0
-#define SCK     
-#define MOSI    
-#define MISO    
+#define SCK     14
+#define MOSI    13
+#define MISO    12
 
 ///
 /// @brief General initialisation
@@ -72,93 +72,11 @@ void hV_HAL_SPI_end();
 ///
 uint8_t hV_HAL_SPI_transfer(uint8_t data);
 
-///
-/// @name 3-wire SPI bus
-/// @warning
-/// * Arduino does not support 3-wire SPI, bit-bang simulation
-/// * Viewer: For compatibility only, not implemented in Linux
-/// @note hV_HAL_SPI3_begin() sets the pins for 3-wire SPI.
-/// @{
 
-#if defined(ENERGIA)
 
-#define SCK 7
-#define MOSI 15
 
-#endif // ENERGIA 
 
-///
-/// @brief Configure 3-wire SPI
-/// @note Select default SCK as clock and MOSI as data (SDIO)
-///
-void hV_HAL_SPI3_begin();
 
-///
-/// @brief Set the 3-wire SPI pins
-/// @param pinClock clock, default = SCK
-/// @param pinData combined data, default = MOSI
-/// @note For manual configuration only
-/// @warning SCK and MOSI provided by Arduino SDK
-/// * Some boards require manual configuration
-///
-void hV_HAL_SPI3_define(uint8_t pinClock = SCK, uint8_t pinData = MOSI);
-
-///
-/// @brief Read a single byte
-/// @return read byte
-/// @note Configure the clock pin as output and data pin as input.
-/// @warning /CS to be managed externally.
-///
-uint8_t hV_HAL_SPI3_read();
-
-///
-/// @brief Write a single byte
-/// @param data byte
-/// @note Configure the clock and data pins as output.
-/// @warning /CS to be managed externally.
-///
-void hV_HAL_SPI3_write(uint8_t value);
-
-/// @}
-
-///
-/// @name Wire bus
-///
-/// @{
-
-///
-/// @brief Configure and start Wire bus
-/// @note Master mode only
-/// @note With check for unique initialisation
-///
-void hV_HAL_Wire_begin();
-
-///
-/// @brief End Wire bus
-/// @note With check for unique deinitialisation
-///
-void hV_HAL_Wire_end();
-
-///
-/// @brief Combined write and read
-///
-/// @param[in] address I2C device address
-/// @param[in] dataWrite buffer to write
-/// @param[in] sizeWrite number of bytes
-/// @param[out] dataRead buffer to read
-/// @param[in] sizeRead number of bytes
-/// @note If sizeRead = 0, no read performed
-/// @warning No check for previous initialisation
-///
-void hV_HAL_Wire_transfer(uint8_t address, uint8_t * dataWrite, size_t sizeWrite, uint8_t * dataRead = 0, size_t sizeRead = 0);
-
-/// @}
-
-///
-/// @name Miscellaneous
-/// @details Patches for implementations on some platforms
-///
-/// @{
 
 ///
 ///

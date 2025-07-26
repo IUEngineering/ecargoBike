@@ -23,15 +23,15 @@ ina228_config config;
 
 void config_ina228(){
     config.i2c = i2c1;
-    config.sda = 6;
-    config.scl = 7;
+    config.sda = 6; // BLUE
+    config.scl = 7; // GREEN
 
     ina228_init(&config);
 }
 
-void pico_set_led(bool led_on) {
-    gpio_put(PICO_DEFAULT_LED_PIN, led_on);
-}
+// void pico_set_led(bool led_on) {
+//     gpio_put(PICO_DEFAULT_LED_PIN, led_on);
+// }
 
 static uint32_t pio_num = 0;
 static uint32_t irq_num = 1;
@@ -47,13 +47,7 @@ static void can2040_cb(struct can2040 *cd, uint32_t notify, struct can2040_msg *
     char buffer[128];
     if (notify == CAN2040_NOTIFY_RX){
       // Set up a test message to send
-        struct can2040_msg tmsg;
-        tmsg.id = 0x209;
-        tmsg.dlc = 8;
-        tmsg.data32[0] = ina228_voltage_raw(&config);
-        tmsg.data32[1] = ina228_current_raw(&config);
-        int sts = can2040_transmit(&cbus, &tmsg);
-        printf("Sent message with ina voltage & current\n");
+        
       // snprintf(buffer, sizeof(buffer), "CAN: rx msg: (id: %0x, size: %0x, data: %0x, %0x)\n", msg->id & 0x7ff, msg->dlc, msg->data32[0], msg->data32[1]);
       // printf("%s", buffer);
     } else if (notify == CAN2040_NOTIFY_TX) {
@@ -89,22 +83,31 @@ void canbus_setup(void){
     can2040_start(&cbus, sys_clock, bitrate, gpio_rx, gpio_tx);
 }
 
+void startBatUnlock() {
+  struct can2040_msg tmsg;
+  tmsg.id = 0x209;
+  tmsg.dlc = 8;
+  tmsg.data32[0] = ina228_voltage_raw(&config);
+  tmsg.data32[1] = ina228_current_raw(&config);
+  int sts = can2040_transmit(&cbus, &tmsg);
+  printf("Sent message with ina voltage & current\n");
 
+}
 
 int main() {
     stdio_init_all();
 
     
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    // gpio_init(PICO_DEFAULT_LED_PIN);
+    // gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 
-    // printf("waiting for usb host");
-    // while (!tud_cdc_connected()) {
-    //   printf(".");
-    //   sleep_ms(500);
-    // };
+    printf("waiting for usb host");
+    while (!tud_cdc_connected()) {
+      printf(".");
+      sleep_ms(500);
+    };
 
-    // printf("\nusb host detected!\n");
+    printf("\nusb host detected!\n");
 
     printf("Initializing CAN Bus...\n"); 
     canbus_setup();
@@ -116,15 +119,14 @@ int main() {
 
     
     while(true){
-      pico_set_led(1);
+      // pico_set_led(1);
       sleep_ms(100);
+      prinft("Voltage is: %f V", ina228_voltage(&config));
      
     }
     can2040_stop(&cbus);
-    pico_set_led(0);
+    // pico_set_led(0);
 
     return 0;
 }
 
-//ORANGE IS L
-//GREEN IS H

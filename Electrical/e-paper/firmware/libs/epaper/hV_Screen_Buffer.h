@@ -83,7 +83,7 @@ class hV_Screen_Buffer : protected hV_Font_Terminal
     /// @brief Request information about the screen
     /// @return string with hardware version
     ///
-    virtual String WhoAmI() = 0; // compulsory
+    virtual STRING_TYPE WhoAmI() = 0; // compulsory
 
     ///
     /// @brief Clear the screen
@@ -316,7 +316,7 @@ class hV_Screen_Buffer : protected hV_Font_Terminal
     /// @return horizontal size of the string for current font, in pixels
     /// @n @b More: @ref Fonts
     ///
-    virtual uint16_t stringSizeX(String text);
+    virtual uint16_t stringSizeX(STRING_TYPE text);
 
     ///
     /// @brief Number of characters to fit a size, x-axis
@@ -325,7 +325,7 @@ class hV_Screen_Buffer : protected hV_Font_Terminal
     /// @return number of characters to be displayed inside the pixels
     /// @n @b More: @ref Fonts
     ///
-    virtual uint8_t stringLengthToFitX(String text, uint16_t pixels);
+    virtual uint8_t stringLengthToFitX(STRING_TYPE text, uint16_t pixels);
 
     ///
     /// @brief Number of fonts
@@ -347,7 +347,7 @@ class hV_Screen_Buffer : protected hV_Font_Terminal
     /// @n @b More: @ref Colour, @ref Fonts, @ref Coordinate
     ///
     virtual void gText(uint16_t x0, uint16_t y0,
-                       String text,
+                       STRING_TYPE text,
                        uint16_t textColour = myColours.black,
                        uint16_t backColour = myColours.white);
 
@@ -363,7 +363,7 @@ class hV_Screen_Buffer : protected hV_Font_Terminal
     /// @n @b More: @ref Colour, @ref Fonts, @ref Coordinate
     ///
     virtual void gTextLarge(uint16_t x0, uint16_t y0,
-                            String text,
+                            STRING_TYPE text,
                             uint16_t textColour = myColours.black,
                             uint16_t backColour = myColours.white);
     /// @}

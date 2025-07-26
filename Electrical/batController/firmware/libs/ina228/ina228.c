@@ -6,8 +6,6 @@
 #include "hardware/i2c.h"
 #include "ina228.h"
 
-
-
 /*
  * SHUNT_CAL is a conversion constant that represents the shunt resistance
  * used to calculate current value in Amps. This also sets the resolution
@@ -72,8 +70,8 @@ void ina228_init(ina228_config *config)
 	i2c_init(config->i2c, 100 * 1000);
 	gpio_set_function(config->sda, GPIO_FUNC_I2C);
 	gpio_set_function(config->scl, GPIO_FUNC_I2C);
-    gpio_pull_up(config->sda);
-    gpio_pull_up(config->scl);
+    // gpio_pull_up(config->sda);
+    // gpio_pull_up(config->scl);
 
 
     ina228_reset(config);

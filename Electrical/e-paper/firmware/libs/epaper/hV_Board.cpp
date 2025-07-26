@@ -19,6 +19,9 @@
 
 // Library header
 #include "hV_Board.h"
+#include "arduToPico.h"
+
+
 
 hV_Board::hV_Board()
 {
@@ -39,24 +42,25 @@ void hV_Board::setPanelPowerPin(uint8_t panelPowerPin)
 }
 
 void hV_Board::b_reset(uint32_t ms1, uint32_t ms2, uint32_t ms3, uint32_t ms4, uint32_t ms5)
-{
-    delay(ms1); // Wait for power stabilisation
-    digitalWrite(b_pin.panelReset, HIGH); // RESET = HIGH
-    delay(ms2);
-    digitalWrite(b_pin.panelReset, LOW); // RESET = LOW
-    delay(ms3);
-    digitalWrite(b_pin.panelReset, HIGH); // RESET = HIGH
-    delay(ms4);
-    digitalWrite(b_pin.panelCS, HIGH); // CS = HIGH, unselect
-    delay(ms5);
+{   
+    sleep_ms(ms1); // Wait for power stabilisation
+    gpio_put(b_pin.panelReset, 1); // RESET = HIGH
+    sleep_ms(ms2);
+    gpio_put(b_pin.panelReset, 0); // RESET = LOW
+    sleep_ms(ms3);
+    gpio_put(b_pin.panelReset, 1); // RESET = HIGH
+    sleep_ms(ms4);
+    gpio_put(b_pin.panelCS, 1); // CS = HIGH, unselect
+    sleep_ms(ms5);
+
 }
 
 void hV_Board::b_waitBusy(bool state)
 {
     // LOW = busy, HIGH = ready
-    while (digitalRead(b_pin.panelBusy) != state)
+    while (gpio_get(b_pin.panelBusy) != state)
     {
-        delay(32); // non-blocking
+        sleep_ms(32); // non-blocking
     }
 }
 
@@ -128,40 +132,6 @@ void hV_Board::b_resume()
         {
             pinMode(b_pin.cardCS, INPUT);
         }
-
-#if (USE_EXT_BOARD == BOARD_EXT4) // EXT4 GPIOs
-
-        if (b_pin.button != NOT_CONNECTED) // generic
-        {
-            pinMode(b_pin.button, INPUT_PULLUP);
-        }
-
-        if (b_pin.ledData != NOT_CONNECTED) // generic
-        {
-            pinMode(b_pin.ledData, OUTPUT);
-        }
-
-        if (b_pin.nfcFD != NOT_CONNECTED) // generic
-        {
-            pinMode(b_pin.nfcFD, INPUT);
-        }
-
-        if (b_pin.imuInt1 != NOT_CONNECTED) // generic
-        {
-            pinMode(b_pin.imuInt1, INPUT);
-        }
-
-        if (b_pin.imuInt2 != NOT_CONNECTED) // generic
-        {
-            pinMode(b_pin.imuInt2, INPUT);
-        }
-
-        if (b_pin.weatherInt != NOT_CONNECTED) // generic
-        {
-            pinMode(b_pin.weatherInt, INPUT);
-        }
-
-#endif // USE_EXT_BOARD
 
         b_fsmPowerScreen |= FSM_GPIO_MASK;
     }

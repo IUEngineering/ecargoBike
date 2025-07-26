@@ -13,5 +13,6 @@ target_include_directories(epaper PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(
                     epaper 
                     pico_stdlib
+                    string_type_lib
                     hardware_spi
                     )

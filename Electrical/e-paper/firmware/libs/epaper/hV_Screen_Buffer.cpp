@@ -27,6 +27,11 @@
 #include "hV_Screen_Buffer.h"
 //#include "QuickDebug.h"
 
+#include "arduToPico.h"
+#include  "string_type.h"
+
+
+
 // Code
 hV_Screen_Buffer::hV_Screen_Buffer()
 {
@@ -567,14 +572,14 @@ uint16_t hV_Screen_Buffer::characterSizeY()
     return f_characterSizeY();
 }
 
-uint16_t hV_Screen_Buffer::stringSizeX(String text)
+uint16_t hV_Screen_Buffer::STRING_TYPESizeX(STRING_TYPE_TYPE text)
 {
-    return f_stringSizeX(text);
+    return f_STRING_TYPESizeX(text);
 }
 
-uint8_t hV_Screen_Buffer::stringLengthToFitX(String text, uint16_t pixels)
+uint8_t hV_Screen_Buffer::STRING_TYPELengthToFitX(STRING_TYPE_TYPE text, uint16_t pixels)
 {
-    return f_stringLengthToFitX(text, pixels);
+    return f_STRING_TYPELengthToFitX(text, pixels);
 }
 
 void hV_Screen_Buffer::setFontSpaceX(uint8_t number)
@@ -592,8 +597,13 @@ uint8_t hV_Screen_Buffer::s_getCharacter(uint8_t character, uint8_t index)
     return f_getCharacter(character, index);
 }
 
+// Replace with your bit reading function
+bool bitRead(unsigned char value, int bit) {
+    return (value >> bit) & 1;
+}
+
 void hV_Screen_Buffer::gText(uint16_t x0, uint16_t y0,
-                             String text,
+                             STRING_TYPE_TYPE text,
                              uint16_t textColour,
                              uint16_t backColour)
 {
@@ -610,7 +620,7 @@ void hV_Screen_Buffer::gText(uint16_t x0, uint16_t y0,
     {
         for (k = 0; k < text.length(); k++)
         {
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
 
             for (i = 0; i < 6; i++)
             {
@@ -637,7 +647,7 @@ void hV_Screen_Buffer::gText(uint16_t x0, uint16_t y0,
     {
         for (k = 0; k < text.length(); k++)
         {
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
 
             for (i = 0; i < 8; i++)
             {
@@ -674,7 +684,7 @@ void hV_Screen_Buffer::gText(uint16_t x0, uint16_t y0,
 
         for (k = 0; k < text.length(); k++)
         {
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
 
             for (i = 0; i < 12; i++)
             {
@@ -709,7 +719,7 @@ void hV_Screen_Buffer::gText(uint16_t x0, uint16_t y0,
     {
         for (k = 0; k < text.length(); k++)
         {
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
             for (i = 0; i < 16; i++)
             {
                 line = f_getCharacter(c, 3 * i);
@@ -753,7 +763,7 @@ void hV_Screen_Buffer::gText(uint16_t x0, uint16_t y0,
 }
 
 void hV_Screen_Buffer::gTextLarge(uint16_t x0, uint16_t y0,
-                                  String text,
+                                  STRING_TYPE text,
                                   uint16_t textColour,
                                   uint16_t backColour)
 {
@@ -778,7 +788,7 @@ void hV_Screen_Buffer::gTextLarge(uint16_t x0, uint16_t y0,
         {
             x = x0 + 6 * k * ix;
             y = y0;
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
 
             for (i = 0; i < 6; i++)
             {
@@ -807,7 +817,7 @@ void hV_Screen_Buffer::gTextLarge(uint16_t x0, uint16_t y0,
         {
             x = x0 + 8 * k * ix;
             y = y0;
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
 
             for (i = 0; i < 8; i++)
             {
@@ -846,7 +856,7 @@ void hV_Screen_Buffer::gTextLarge(uint16_t x0, uint16_t y0,
         {
             x = x0 + 12 * k * ix;
             y = y0;
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
 
             for (i = 0; i < 12; i++)
             {
@@ -884,7 +894,7 @@ void hV_Screen_Buffer::gTextLarge(uint16_t x0, uint16_t y0,
         {
             x = x0 + 16 * k * ix;
             y = y0;
-            c = text.charAt(k) - ' ';
+            c = text.at(k) - ' ';
 
             for (i = 0; i < 16; i++)
             {
