@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico CACHE STRING "Board type")
+set(PICO_BOARD waveshare_rp2040_zero CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -45,6 +45,7 @@ if (TARGET tinyusb_device)
     # Add libraries to the build
     add_subdirectory(libs/ina228)
     add_subdirectory(libs/can)
+    add_subdirectory(libs/ws2812)
     pico_generate_pio_header(can2040 ${CMAKE_SOURCE_DIR}/libs/can/pio/can2040.pio)
 
 
@@ -56,6 +57,8 @@ if (TARGET tinyusb_device)
         hardware_i2c
         can2040
         cmsis_core
+        ws2812
+        pico_multicore
         )
 
     # enable usb output, disable uart output

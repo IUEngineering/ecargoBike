@@ -60,6 +60,9 @@
         "platform.h": "c",
         "cstddef": "c",
         "can2040.h": "c",
-        "tusb.h": "c"
+        "tusb.h": "c",
+        "clocks.h": "c",
+        "pio.h": "c",
+        "multicore.h": "c"
     }
 }
