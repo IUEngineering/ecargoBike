@@ -38,8 +38,8 @@ typedef struct {
 	float shuntvoltage;
 } ina228_config;
 
-void ina228_init(ina228_config *config);
-void ina228_reset(ina228_config *config);
+int ina228_init(ina228_config *config);
+int ina228_reset(ina228_config *config);
 float ina228_voltage(ina228_config *config);
 uint32_t ina228_voltage_raw(ina228_config *config);
 float ina228_current(ina228_config *config);

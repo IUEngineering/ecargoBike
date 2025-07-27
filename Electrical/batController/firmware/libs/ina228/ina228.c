@@ -7,20 +7,6 @@
 #include "ina228.h"
 
 
-
-
-/*
- * SHUNT_CAL is a conversion constant that represents the shunt resistance
- * used to calculate current value in Amps. This also sets the resolution
- * (CURRENT_LSB) for the current register.
- *
- * SHUNT_CAL is 15 bits wide (0 - 32768)
- *
- * SHUNT_CAL = 13107.2 x 10^6 x CURRENT_LSB x Rshunt
- *
- * CURRENT_LSB = Max Expected Current / 2^19
- */
-
 #define BUS_VOLTAGE_LSB     0.0001953125f  // Bus voltage LSB (195.3125 µV/bit)
 #define MAX_CURRENT         10             // Current in Amps
 #define CURRENT_LSB         (MAX_CURRENT / (float)(1UL << 19))
@@ -28,87 +14,35 @@
 #define SHUNT_CAL_CONSTANT  13107200.0f
 
 
-
-// Write 1 byte to the specified register
-int reg_write(i2c_inst_t *i2c,  const uint addr, const uint8_t reg, uint8_t *buf, const uint8_t nbytes) {
-    int num_bytes_read = 0;
-    uint8_t msg[nbytes + 1];
-
-    // Check to make sure caller is sending 1 or more bytes
-    if (nbytes < 1) {
-        return 0;
-    }
-
-    // Append register address to front of data packet
-    msg[0] = reg;
-    for (int i = 0; i < nbytes; i++) {
-        msg[i + 1] = buf[i];
-    }
-
-    // Write data to register(s) over I2C
-    i2c_write_blocking(i2c, addr, msg, (nbytes + 1), false);
-
-    return num_bytes_read;
-}
-
-// Read byte(s) from specified register. If nbytes > 1, read from consecutive
-// registers.
-int reg_read(i2c_inst_t *i2c, const uint addr, const uint8_t reg, uint8_t *buf, const uint8_t nbytes) {
-
-    int num_bytes_read = 0;
-
-    // Check to make sure caller is asking for 1 or more bytes
-    if (nbytes < 1) {
-        return 0;
-    }
-
-    // Read data from register(s) over I2C
-    i2c_write_blocking(i2c, addr, &reg, 1, true);
-    num_bytes_read = i2c_read_blocking(i2c, addr, buf, nbytes, false);
-
-    return num_bytes_read;
-}
-
-
-void ina228_init(ina228_config *config)
-{   
-    // SCCB I2C @ 100 kHz
-	i2c_init(config->i2c, 100 * 1000);
-	gpio_set_function(config->sda, GPIO_FUNC_I2C);
-	gpio_set_function(config->scl, GPIO_FUNC_I2C);
+int ina228_init(ina228_config *config)
+{
+    // I2C setup
+    i2c_init(config->i2c, 100 * 1000);
+    gpio_set_function(config->sda, GPIO_FUNC_I2C);
+    gpio_set_function(config->scl, GPIO_FUNC_I2C);
     gpio_pull_up(config->sda);
     gpio_pull_up(config->scl);
 
+    if (ina228_reset(config) != 0) {
+        printf("Failed to reset INA228.\n");
+        return -1;
+    }
 
-    ina228_reset(config);
-    sleep_ms(20);  // Wait 20 after reset
-    uint8_t config_reg[2];
-    reg_read(config->i2c, INA228_ADDRESS, INA228_CONFIG, config_reg, 2);
-    printf("Config register after reset: 0x%02X%02X\n", config_reg[0], config_reg[1]);
-    uint8_t id_buf[2];
-    reg_read(config->i2c, INA228_ADDRESS, INA228_DEVICE_ID, id_buf, 2);
-    uint16_t device_id = (id_buf[0] << 8) | id_buf[1];
+    uint8_t id[2];
+    uint8_t man[2];
 
-    uint8_t man_buf[2];
-    reg_read(config->i2c, INA228_ADDRESS, INA228_MANUFACTURER_ID, man_buf, 2);
-    uint16_t manufacturer_id = (man_buf[0] << 8) | man_buf[1];
+    if (reg_read(config->i2c, INA228_ADDRESS, 0xFE, man, 2) < 0 ||
+        reg_read(config->i2c, INA228_ADDRESS, 0xFF, id, 2) < 0) {
+        printf("Failed to read Manufacturer or Device ID.\n");
+        return -1;
+    }
 
-    printf("Manufacturer ID: 0x%04X\n", manufacturer_id);
-    printf("Device ID:       0x%04X\n", device_id);
+    printf("Manufacturer ID: 0x%04X\r\n", (man[0] << 8) | man[1]);
+    printf("Device ID:       0x%04X\r\n", (id[0] << 8) | id[1]);
 
+    // TODO: onfigure shunt settings here
 
-    ina228_updateShuntCalRegister(config);
-
-    // ina228_reg_write(config, INA228_SHUNT_CAL, SHUNT_CAL);
-}
-
-void ina228_reset(ina228_config *config){
-    uint8_t buf[3];
-    buf[0] = INA228_CONFIG;
-    buf[1] = (INA228_CFG_RST >> 8) & 0xFF;
-    buf[2] = INA228_CFG_RST & 0xFF;
-
-    i2c_write_blocking(config->i2c, INA228_ADDRESS, buf, 3, false);
+    return 0;
 }
 
 void ina228_updateShuntCalRegister(ina228_config *config) {
@@ -137,26 +71,20 @@ uint8_t ina228_getADCRange(ina228_config *config) {
   return (ADCRange[1] >> 4) & 1;
 }
 
-float ina228_voltage(ina228_config *config){ 
+float ina228_voltage(ina228_config *config) {
     uint8_t regReadbusVoltage[3];
-    float busVoltage;
-    int32_t rawVoltage24 = 0;
-
-    reg_read(config->i2c, INA228_ADDRESS, INA228_VBUS, regReadbusVoltage, 3);
-    
-    int32_t signed1 = rawVoltage24;
-    if (signed1 & 0x800000) {  // if sign bit set
-        signed1 |= 0xFF000000; // sign extend to 32-bit
+    int result = reg_read(config->i2c, INA228_ADDRESS, INA228_VBUS, regReadbusVoltage, 3);
+    if (result < 0) {
+        printf("Failed to read bus voltage\n");
+        return -1.0f;
     }
-    return (float)(signed1 >> 4) * 195.3125f / 1e6f;
 
+    int32_t rawVoltage24 = (regReadbusVoltage[0] << 16) |
+                           (regReadbusVoltage[1] << 8)  |
+                           (regReadbusVoltage[2]);
 
-    // Assemble 24-bit signed integer
-    // rawVoltage24 = (regReadbusVoltage[0] << 16) |
-    //                (regReadbusVoltage[1] << 8)  |
-    //                (regReadbusVoltage[2]);
-
-    // return (float)((uint32_t)rawVoltage24 >> 4) * 195.3125 / 1e6;
+    // Right-shift 4 bits since VBUS is a 20-bit value in bits 23:4
+    return (float)((uint32_t)rawVoltage24 >> 4) * 195.3125f / 1e6f;
 }
 
 
@@ -192,4 +120,54 @@ uint16_t ina228_current_raw(ina228_config *config){
     uint8_t regReadCurrent[2];
     reg_read(config->i2c, INA228_ADDRESS, INA228_CURRENT, regReadCurrent, 2);
     return (regReadCurrent[0] << 8) | regReadCurrent[1];
+}
+
+
+int reg_read(i2c_inst_t *i2c, const uint addr, const uint8_t reg, uint8_t *buf, const uint8_t nbytes) {
+    if (nbytes < 1) return -1;
+
+    int write_result = i2c_write_blocking(i2c, addr, &reg, 1, true);
+    if (write_result < 0) {
+        printf("I2C reg address write failed for reg 0x%02X\n", reg);
+        return write_result;
+    }
+
+    int read_result = i2c_read_blocking(i2c, addr, buf, nbytes, false);
+    if (read_result < 0) {
+        printf("I2C read failed from reg 0x%02X\n", reg);
+    }
+
+    return read_result;
+}
+
+int ina228_reset(ina228_config *config){
+    uint8_t buf[2];
+    buf[0] = (INA228_CFG_RST >> 8) & 0xFF;
+    buf[1] = INA228_CFG_RST & 0xFF;
+
+    int result = reg_write(config->i2c, INA228_ADDRESS, INA228_CONFIG, buf, 2);
+    if (result < 0) {
+        printf("INA228 reset failed\n");
+        return -1;
+    }
+
+    sleep_ms(2); // short wait for reset to complete
+    return 0;
+}
+
+int reg_write(i2c_inst_t *i2c, const uint addr, const uint8_t reg, uint8_t *buf, const uint8_t nbytes) {
+    if (nbytes < 1) return -1; // invalid input
+
+    uint8_t msg[nbytes + 1];
+    msg[0] = reg;
+    for (int i = 0; i < nbytes; i++) {
+        msg[i + 1] = buf[i];
+    }
+
+    int result = i2c_write_blocking(i2c, addr, msg, nbytes + 1, false);
+    if (result < 0) {
+        printf("I2C write failed to address 0x%02X, reg 0x%02X\n", addr, reg);
+    }
+
+    return result;
 }
