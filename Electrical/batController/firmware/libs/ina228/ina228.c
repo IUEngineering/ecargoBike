@@ -7,11 +7,11 @@
 #include "ina228.h"
 
 
-#define BUS_VOLTAGE_LSB     0.0001953125f  // Bus voltage LSB (195.3125 µV/bit)
-#define MAX_CURRENT         10             // Current in Amps
-#define CURRENT_LSB         (MAX_CURRENT / (float)(1UL << 19))
-#define SHUNT_VALUE         0.015
-#define SHUNT_CAL_CONSTANT  13107200.0f
+#define BUS_VOLTAGE_LSB         0.0001953125f  // Bus voltage LSB (195.3125 µV/bit)
+#define CURRENT_LSB             (100e-6)
+#define SHUNT_CAL_CONSTANT      13107200.0f
+#define SHUNT_RESISTOR          0.015
+#define SHUNT_CAL               (uint16_t)(SHUNT_CAL_CONSTANT * CURRENT_LSB * SHUNT_RESISTOR)
 
 
 int ina228_init(ina228_config *config)
@@ -40,7 +40,7 @@ int ina228_init(ina228_config *config)
     printf("Manufacturer ID: 0x%04X\r\n", (man[0] << 8) | man[1]);
     printf("Device ID:       0x%04X\r\n", (id[0] << 8) | id[1]);
 
-    // TODO: onfigure shunt settings here
+    ina228_updateShuntCalRegister(config);
 
     return 0;
 }
@@ -50,7 +50,7 @@ void ina228_updateShuntCalRegister(ina228_config *config) {
         if (ina228_getADCRange(config)) {
         scale = 4;
     }
-    float shunt_cal = SHUNT_CAL_CONSTANT * CURRENT_LSB * SHUNT_VALUE * scale;
+    float shunt_cal = SHUNT_CAL;
     uint16_t cal_value = (uint16_t)shunt_cal;
     uint8_t data[2] = {
         (cal_value >> 8) & 0xFF,  // MSB
@@ -102,25 +102,46 @@ uint32_t ina228_voltage_raw(ina228_config *config){
     return (uint32_t)rawVoltage24;
 }
 
+float ina228_current(ina228_config *config) { 
+    uint8_t regReadCurrent[3];
+    int32_t rawCurrent = 0;
 
-float ina228_current(ina228_config *config){ 
-    uint8_t regReadCurrent[2];
-    int16_t rawCurrent16 = 0;
+    if (reg_read(config->i2c, INA228_ADDRESS, INA228_CURRENT, regReadCurrent, 3) < 0) {
+        printf("Failed to read current register\n");
+        return -1.0f;
+    }
 
-    reg_read(config->i2c, INA228_ADDRESS, INA228_CURRENT, regReadCurrent, 2);
+    // Assemble 24-bit signed value
+    rawCurrent = (regReadCurrent[0] << 16) |
+                 (regReadCurrent[1] << 8)  |
+                 (regReadCurrent[2]);
 
-    rawCurrent16 = (regReadCurrent[0] << 8) | regReadCurrent[1];
+    // Sign-extend if negative
+    if (rawCurrent & 0x800000) {
+        rawCurrent |= 0xFF000000;
+    }
 
-    // Current LSB and scaling might differ, adjust as per datasheet
-    return (float)rawCurrent16 * CURRENT_LSB * 1000.0;  // mA
+    float current = -rawCurrent * CURRENT_LSB;  // in Amps
+    return current * 1000.0f;  // convert to mA if needed
 }
 
+uint32_t ina228_current_raw(ina228_config *config) { 
+    uint8_t regReadCurrent[3];
+    if (reg_read(config->i2c, INA228_ADDRESS, INA228_CURRENT, regReadCurrent, 3) < 0)
+        return 0;
 
-uint16_t ina228_current_raw(ina228_config *config){ 
-    uint8_t regReadCurrent[2];
-    reg_read(config->i2c, INA228_ADDRESS, INA228_CURRENT, regReadCurrent, 2);
-    return (regReadCurrent[0] << 8) | regReadCurrent[1];
+    int32_t rawCurrent = (regReadCurrent[0] << 16) |
+                         (regReadCurrent[1] << 8)  |
+                         (regReadCurrent[2]);
+
+    // Sign-extend
+    if (rawCurrent & 0x800000) {
+        rawCurrent |= 0xFF000000;
+    }
+
+    return (uint32_t)rawCurrent;
 }
+
 
 
 int reg_read(i2c_inst_t *i2c, const uint addr, const uint8_t reg, uint8_t *buf, const uint8_t nbytes) {
