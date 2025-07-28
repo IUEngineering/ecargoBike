@@ -122,7 +122,7 @@
 /// @details Based on STRING_MODE selection
 ///
 #define STRING_TYPE std::string
-#define STRING_CONST_TYPE const std::string&
+#define STRING_CONST_TYPE const std::string
 
 #endif // hV_CONFIGURATION_RELEASE
 

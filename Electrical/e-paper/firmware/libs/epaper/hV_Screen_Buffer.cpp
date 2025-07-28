@@ -28,7 +28,6 @@
 //#include "QuickDebug.h"
 
 #include "arduToPico.h"
-#include  "string_type.h"
 
 
 
@@ -572,14 +571,14 @@ uint16_t hV_Screen_Buffer::characterSizeY()
     return f_characterSizeY();
 }
 
-uint16_t hV_Screen_Buffer::STRING_TYPESizeX(STRING_TYPE_TYPE text)
+uint16_t hV_Screen_Buffer::stringSizeX(STRING_TYPE text)
 {
-    return f_STRING_TYPESizeX(text);
+    return f_stringSizeX(text);
 }
 
-uint8_t hV_Screen_Buffer::STRING_TYPELengthToFitX(STRING_TYPE_TYPE text, uint16_t pixels)
+uint8_t hV_Screen_Buffer::stringLengthToFitX(STRING_TYPE text, uint16_t pixels)
 {
-    return f_STRING_TYPELengthToFitX(text, pixels);
+    return f_stringLengthToFitX(text, pixels);
 }
 
 void hV_Screen_Buffer::setFontSpaceX(uint8_t number)
@@ -603,7 +602,7 @@ bool bitRead(unsigned char value, int bit) {
 }
 
 void hV_Screen_Buffer::gText(uint16_t x0, uint16_t y0,
-                             STRING_TYPE_TYPE text,
+                             STRING_TYPE text,
                              uint16_t textColour,
                              uint16_t backColour)
 {

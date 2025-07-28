@@ -22,6 +22,8 @@
 
 // Library header
 #include "hV_Utilities_PDLS.h"
+#include "arduToPico.h"
+
 
 hV_Utilities_PDLS::hV_Utilities_PDLS()
 {
@@ -300,56 +302,56 @@ void hV_Utilities_PDLS::setPowerProfile(uint8_t mode, uint8_t scope)
     }
 }
 
-void hV_Utilities_PDLS::debugVariant(uint8_t contextFilm)
-{
-    mySerial.println();
+// void hV_Utilities_PDLS::debugVariant(uint8_t contextFilm)
+// {
+//     printf();
 
-    switch (contextFilm)
-    {
-        case FILM_P: // BW, Embedded fast update
+//     switch (contextFilm)
+//     {
+//         case FILM_P: // BW, Embedded fast update
 
-            mySerial.println(formatString("hV * Screen %i-%cS-0%c with no fast update", u_codeSize, u_codeFilm, u_codeDriver));
-            break;
+//             printf(formatString("hV * Screen %i-%cS-0%c with no fast update", u_codeSize, u_codeFilm, u_codeDriver));
+//             break;
 
-        case FILM_K: // BW, wide temperature and embedded fast update
+//         case FILM_K: // BW, wide temperature and embedded fast update
 
-            mySerial.println(formatString("hV * Screen %i-%cS-0%c with no wide temperature and embedded fast update", u_codeSize, u_codeFilm, u_codeDriver));
-            break;
+//             printf(formatString("hV * Screen %i-%cS-0%c with no wide temperature and embedded fast update", u_codeSize, u_codeFilm, u_codeDriver));
+//             break;
 
-        case FILM_Q: // BWRY
+//         case FILM_Q: // BWRY
 
-            mySerial.println(formatString("hV * Screen %i-%cS-0%c is not black-white-red-yellow", u_codeSize, u_codeFilm, u_codeDriver));
-            break;
+//             printf(formatString("hV * Screen %i-%cS-0%c is not black-white-red-yellow", u_codeSize, u_codeFilm, u_codeDriver));
+//             break;
 
-        default:
+//         default:
 
-            mySerial.println(formatString("hV * Screen %i-%cS-0%c is not supported", u_codeSize, u_codeFilm, u_codeDriver));
-            break;
-    } // u_codeFilm
+//             printf(formatString("hV * Screen %i-%cS-0%c is not supported", u_codeSize, u_codeFilm, u_codeDriver));
+//             break;
+//     } // u_codeFilm
 
-    switch (u_codeFilm)
-    {
-        case FILM_P: // BW, Embedded fast update
+//     switch (u_codeFilm)
+//     {
+//         case FILM_P: // BW, Embedded fast update
 
-            mySerial.println(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "Fast"));
-            break;
+//             printf(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "Fast"));
+//             break;
 
-        case FILM_K: // BW, wide temperature and embedded fast update
+//         case FILM_K: // BW, wide temperature and embedded fast update
 
-            mySerial.println(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "Wide"));
-            break;
+//             printf(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "Wide"));
+//             break;
 
-        case FILM_Q: // BWRY
+//         case FILM_Q: // BWRY
 
-            mySerial.println(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "BWRY"));
-            break;
+//             printf(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "BWRY"));
+//             break;
 
-        default:
+//         default:
 
-            mySerial.println(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "Global"));
-            break;
-    } // u_codeFilm
+//             printf(formatString("hV * Use PDLS_EXT3_%s_%s instead", "Basic", "Global"));
+//             break;
+//     } // u_codeFilm
 
-    mySerial.println();
-    while (0x01);
-}
+//     printf();
+//     while (0x01);
+// }

@@ -32,9 +32,9 @@
 
 #define HIGH    1
 #define LOW     0
-#define SCK     14
-#define MOSI    13
-#define MISO    12
+#define SCK     18
+#define MOSI    19
+#define MISO    16
 
 ///
 /// @brief General initialisation

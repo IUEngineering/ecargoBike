@@ -21,12 +21,13 @@
 // Library header
 #include "hV_Utilities_Common.h"
 #include "stdarg.h"
-#include "stdio.h"
+#include "arduToPico.h"
 
-void delay_ms(uint32_t ms)
-{
-    uint32_t chrono = millis() + ms;
-    while (millis() < chrono);
+
+
+
+void delay_ms(uint32_t ms) {
+    sleep_ms(ms);
 }
 
 char bufferIn[128];
@@ -43,12 +44,12 @@ STRING_TYPE formatString(const char * format, ...)
     vsnprintf(bufferOut, 127, format, args);
     va_end(args);
 
-    return String(bufferOut);
+    return STRING_TYPE(bufferOut);
 }
 
 STRING_TYPE trimString(STRING_TYPE text)
 {
-    String work = "";
+    STRING_TYPE work = "";
     bool flag = true;
     char c;
 
@@ -60,7 +61,7 @@ STRING_TYPE trimString(STRING_TYPE text)
     flag = true;
     while ((index < text.length()) and flag)
     {
-        if ((text.charAt(index) != '\n') and (text.charAt(index) != '\r') and (text.charAt(index) != ' ') and (text.charAt(index) != '\t'))
+        if ((text.at(index) != '\n') and (text.at(index) != '\r') and (text.at(index) != ' ') and (text.at(index) != '\t'))
         {
             flag = false;
             start = index;
@@ -73,7 +74,7 @@ STRING_TYPE trimString(STRING_TYPE text)
     flag = true;
     while ((index > 0) and flag)
     {
-        if ((text.charAt(index) != '\n') and (text.charAt(index) != '\r') and (text.charAt(index) != ' ') and (text.charAt(index) != '\t'))
+        if ((text.at(index) != '\n') and (text.at(index) != '\r') and (text.at(index) != ' ') and (text.at(index) != '\t'))
         {
             flag = false;
             end = index - 1;
@@ -81,7 +82,11 @@ STRING_TYPE trimString(STRING_TYPE text)
         index--;
     }
 
-    return text.substring(start, end);
+    return text.substr(start, end - start);
+}
+
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 int32_t cos32x100(int32_t degreesX100)
@@ -157,50 +162,55 @@ int32_t sin32x100(int32_t degreesX100)
     return cos32x100(degreesX100 + 27000);
 }
 
-STRING_TYPE utf2iso(STRING_TYPE s)
+std::string utf2iso(const std::string& s)
 {
+    const size_t maxLen = s.length() + 1;
+    char* bufferIn = new char[maxLen];
+    std::strcpy(bufferIn, s.c_str());
+
+    char bufferOut[maxLen] = {0};  // zero-initialize output
+
     uint8_t c;
+    size_t outIndex = 0;
 
-    s.toCharArray(bufferIn, s.length() + 1);
-    // strcpy(bufferIn, s.c_str());
-
-    memset(&bufferOut, 0x00, sizeof(bufferOut));
-
-    for (uint8_t i = 0; i < strlen(bufferIn); i++)
+    for (size_t i = 0; i < std::strlen(bufferIn); ++i)
     {
-        c = (uint8_t)bufferIn[i];
+        c = static_cast<uint8_t>(bufferIn[i]);
 
         if (c < 0x80)
         {
-            bufferOut[strlen(bufferOut)] = c;
+            bufferOut[outIndex++] = c;
         }
-        else if (c == 0xc3)
+        else if (c == 0xC3)
         {
-            bufferOut[strlen(bufferOut)] = (bufferIn[++i] + 64);
+            bufferOut[outIndex++] = static_cast<uint8_t>(bufferIn[++i]) + 64;
         }
-        else if (c == 0xc2)
+        else if (c == 0xC2)
         {
-            bufferOut[strlen(bufferOut)] = bufferIn[++i];
+            bufferOut[outIndex++] = bufferIn[++i];
         }
-        else if (c == 0xe2)
+        else if (c == 0xE2)
         {
-            if ((bufferIn[i + 1] == 0x82) && (bufferIn[i + 2] == 0xac))
+            if ((static_cast<uint8_t>(bufferIn[i + 1]) == 0x82) &&
+                (static_cast<uint8_t>(bufferIn[i + 2]) == 0xAC))
             {
-                bufferOut[strlen(bufferOut)] = 0x80;
+                bufferOut[outIndex++] = 0x80;  // Euro sign (€)
                 i += 2;
             }
         }
     }
 
-    return bufferOut;
+    std::string result(bufferOut);
+    delete[] bufferIn;
+    return result;
 }
 
 uint16_t checkRange(uint16_t value, uint16_t valueMin, uint16_t valueMax)
 {
-    uint16_t localMin = min(valueMin, valueMax);
-    uint16_t localMax = max(valueMin, valueMax);
+    uint16_t localMin = std::min(valueMin, valueMax);
+    uint16_t localMax = std::max(valueMin, valueMax);
 
-    return min(max(localMin, value), localMax);
+    return std::min(std::max(localMin, value), localMax);
 }
 
 void setMinMax(uint16_t value, uint16_t & valueMin, uint16_t & valueMax)

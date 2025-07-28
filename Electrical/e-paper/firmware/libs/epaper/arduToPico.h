@@ -2,6 +2,10 @@
 #define ARDU_TO_PICO_H
 
 #include "pico/stdlib.h"  // For gpio_* and sleep_* functions
+#include <stdarg.h>
+#include <string.h>
+#include <cstring>  // for std::strcpy
+#include <algorithm>  // for std::min, std::max
 
 
 // Emulate Arduino digitalWrite and digitalRead using Pico SDK

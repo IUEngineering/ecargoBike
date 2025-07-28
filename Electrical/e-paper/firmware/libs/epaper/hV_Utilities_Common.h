@@ -34,6 +34,8 @@
 
 // SDK
 #include "hV_HAL_Peripherals.h"
+#include "pico/stdlib.h"
+#include "pico/time.h"
 
 // Configuration
 #include "hV_Configuration.h"

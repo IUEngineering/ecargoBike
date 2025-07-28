@@ -6,6 +6,13 @@ extern "C" {
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/clocks.h"
+#include "PDLS_EXT3_Basic_Fast.h"
+#include "hV_HAL_Peripherals.h"
+#include "hV_Configuration.h"
+#include "arduToPico.h"
+
+Screen_EPD_EXT3_Fast myScreen(eScreen_EPD_266_PS_0C, boardRaspberryPiPico_RP2040);
+
 
 // Determine if the target is an rp2350
 #ifdef PICO_RP2350
@@ -14,78 +21,71 @@ extern "C" {
   #include "RP2040.h"
 #endif
 
-static uint32_t pio_num = 0;
-static uint32_t irq_num = 1;
-static uint32_t bitrate = 500000;
-static uint32_t gpio_rx = 4;
-static uint32_t gpio_tx = 5;
-
-static struct can2040 cbus;
-
-//Callback to handle messages
-static void can2040_cb(struct can2040 *cd, uint32_t notify, struct can2040_msg *msg)
+void performTest()
 {
-    char buffer[128];
-    if (notify == CAN2040_NOTIFY_RX){   
-      snprintf(buffer, sizeof(buffer), "CAN: rx msg: (id: %0x, size: %0x, data: %0x, %0x)\n", msg->id & 0x7ff, msg->dlc, msg->data32[0], msg->data32[1]);
-      printf("%s", buffer);
-    } else if (notify == CAN2040_NOTIFY_TX) {
-      snprintf(buffer, sizeof(buffer), "CAN: tx msg: (id: %0x, size: %0x, data: %0x, %0x)\n", msg->id & 0x7ff, msg->dlc, msg->data32[0], msg->data32[1]);
-      printf("%s", buffer); 
-    } else if (notify & CAN2040_NOTIFY_ERROR) {
-      //For some reason printing a serial message here causes a crash
-      return;
-    }
+    uint32_t chrono = 0;
+
+    myScreen.clear();
+    myScreen.setOrientation(ORIENTATION_LANDSCAPE);
+
+    uint16_t x = myScreen.screenSizeX();
+    uint16_t y = myScreen.screenSizeY();
+    uint16_t dx = 0;
+    uint16_t dy = 0;
+    uint16_t dz = y / 2;
+    std::string text = "";
+
+    myScreen.selectFont(Font_Terminal12x16);
+
+    // 0
+    dy = (dz - myScreen.characterSizeY()) / 2;
+    text = myScreen.WhoAmI();
+    printf("%c",text);
+    dx = (x - myScreen.stringSizeX(text)) / 2;
+    myScreen.gText(dx, dy, text);
+    myScreen.dRectangle(0, dz * 0, x, dz, myColours.black);
+
+    sleep_ms(200);
+    myScreen.flush();
+    sleep_ms(200);
+    
+    // 1
+    dy += dz;
+    // text = formatString("Global update= %i ms", chrono);
+    text = formatString("Fast update= %i ms", chrono);
+    printf("%c", text);
+    dx = (x - myScreen.stringSizeX(text)) / 2;
+    myScreen.gText(dx, dy, text);
+    myScreen.dRectangle(0, dz * 1, x, dz, myColours.black);
+
+    myScreen.flush();
 }
 
-static void PIOx_IRQHandler(void){
-    can2040_pio_irq_handler(&cbus);
+void setup()
+{
+    delay(500);
+    myScreen.begin();
+    myScreen.clear();
+    performTest();
+    sleep_ms(8000);
+    myScreen.regenerate();
 }
 
-void canbus_setup(void){
-    // get the actual system clock frequency dynamically 
-    //  to account for overclocking.
-    // pico1 = 125000000
-    // pico2 = 150000000
-    uint32_t sys_clock = clock_get_hz(clk_sys);
-
-    // Setup canbus
-    can2040_setup(&cbus, pio_num);
-    can2040_callback_config(&cbus, can2040_cb);
-
-    // Enable irqs
-    irq_set_exclusive_handler(PIO0_IRQ_0_IRQn, PIOx_IRQHandler);
-    NVIC_SetPriority(PIO0_IRQ_0_IRQn, irq_num);
-    NVIC_EnableIRQ(PIO0_IRQ_0_IRQn);
-
-    // Start canbus
-    can2040_start(&cbus, sys_clock, bitrate, gpio_rx, gpio_tx);
-}
 
 int main(){
   //Needed for printf
   stdio_init_all();
+  setup();
 
-  printf("Initializing CAN Bus...\n"); 
-  canbus_setup();
+  setup();
+  while (true) {
+    // Main loop 
+    myScreen.clear();
+    performTest();  
 
-  // Set up a test message to send
-  can2040_msg msg = {
-    .id = (uint32_t)(0xDEADBEEF | CAN2040_ID_EFF),
-    .dlc = 8,
-    .data32 = {
-            0xEFBEADDE,
-            0x78563412
-    }
-  };
+    sleep_ms(2000);  // Sleep for 2 second
+  }
+ 
 
-  printf("Attempting Test Message: DEADBEEF 12345678\n");
-  can2040_transmit(&cbus, &msg);
-
-  // While the system sleeps, the IRQ handler will be called
-  printf("Listening on CAN for 500sec...\n");
-  sleep_ms(500000);
-  printf("Exiting...\n");
-  can2040_stop(&cbus);
   return 0;
 }

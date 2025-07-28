@@ -43,6 +43,7 @@
 
 // Library header
 #include "Screen_EPD_EXT3.h"
+#include "arduToPico.h"
 
 //
 // === COG section
@@ -63,87 +64,87 @@ void Screen_EPD_EXT3_Fast::COG_MediumP_reset()
     b_reset(5, 2, 4, 20, 5); // Medium
 }
 
-void Screen_EPD_EXT3_Fast::COG_MediumP_getDataOTP()
-{
-    // Read OTP
-    uint16_t _readBytes = 0;
-    uint8_t ui8 = 0; // dummy
-    u_flagOTP = false;
+// void Screen_EPD_EXT3_Fast::COG_MediumP_getDataOTP()
+// {
+//     // Read OTP
+//     uint16_t _readBytes = 0;
+//     uint8_t ui8 = 0; // dummy
+//     u_flagOTP = false;
 
-    COG_MediumP_reset();
-    if (b_family == FAMILY_LARGE)
-    {
-        digitalWrite(b_pin.panelCSS, HIGH); // Unselect slave panel
-    }
+//     COG_MediumP_reset();
+//     if (b_family == FAMILY_LARGE)
+//     {
+//         digitalWrite(b_pin.panelCSS, HIGH); // Unselect slave panel
+//     }
 
-    // Read OTP
-    switch (u_codeDriver)
-    {
-        case DRIVER_B:
+//     // Read OTP
+//     switch (u_codeDriver)
+//     {
+//         case DRIVER_B:
 
-            _readBytes = 128;
+//             _readBytes = 128;
 
-            digitalWrite(b_pin.panelDC, LOW); // Command
-            digitalWrite(b_pin.panelCS, LOW); // Select
-            hV_HAL_SPI3_write(0xb9);
-            delay(5);
-            break;
+//             digitalWrite(b_pin.panelDC, LOW); // Command
+//             digitalWrite(b_pin.panelCS, LOW); // Select
+//             // hV_HAL_SPI3_write(0xb9);
+//             delay(5);
+//             break;
 
-        default:
+//         default:
 
-            mySerial.println();
-            mySerial.println(formatString("hV * OTP failed for screen %i-%cS-0%c", u_codeSize, u_codeFilm, u_codeDriver));
-            while (0x01);
-            break;
-    }
+//             printf();
+//             printf(formatString("hV * OTP failed for screen %i-%cS-0%c", u_codeSize, u_codeFilm, u_codeDriver));
+//             while (0x01);
+//             break;
+//     }
 
-    digitalWrite(b_pin.panelDC, HIGH); // Data
-    ui8 = hV_HAL_SPI3_read(); // Dummy
+//     digitalWrite(b_pin.panelDC, HIGH); // Data
+//     ui8 = hV_HAL_SPI3_read(); // Dummy
 
-    // Populate COG_data
-    for (uint16_t index = 0; index < _readBytes; index += 1)
-    {
-        COG_data[index] = hV_HAL_SPI3_read(); // Read OTP
-    }
+//     // Populate COG_data
+//     for (uint16_t index = 0; index < _readBytes; index += 1)
+//     {
+//         COG_data[index] = hV_HAL_SPI3_read(); // Read OTP
+//     }
 
-    // End of OTP reading
-    digitalWrite(b_pin.panelCS, HIGH); // Unselect
+//     // End of OTP reading
+//     digitalWrite(b_pin.panelCS, HIGH); // Unselect
 
-    // Check
-    uint8_t _chipId;
-    switch (u_eScreen_EPD)
-    {
-        case eScreen_EPD_343_PS_0B_Touch:
-        case eScreen_EPD_581_PS_0B:
+//     // Check
+//     uint8_t _chipId;
+//     switch (u_eScreen_EPD)
+//     {
+//         case eScreen_EPD_343_PS_0B_Touch:
+//         case eScreen_EPD_581_PS_0B:
 
-            _chipId = 0x10;
-            u_flagOTP = (COG_data[0x00] == _chipId);
-            break;
+//             _chipId = 0x10;
+//             u_flagOTP = (COG_data[0x00] == _chipId);
+//             break;
 
-        //         case eScreen_EPD_581_KS_0B:
-        //
-        //             _chipId = 0x16;
-        //             u_flagOTP = (COG_data[0x00] == _chipId);
-        //             break;
+//         //         case eScreen_EPD_581_KS_0B:
+//         //
+//         //             _chipId = 0x16;
+//         //             u_flagOTP = (COG_data[0x00] == _chipId);
+//         //             break;
 
-        default:
+//         default:
 
-            _chipId = 0x00;
-            u_flagOTP = false;
-            break;
-    }
+//             _chipId = 0x00;
+//             u_flagOTP = false;
+//             break;
+//     }
 
-    if (u_flagOTP == true)
-    {
-        mySerial.println("hV . OTP check passed");
-    }
-    else
-    {
-        mySerial.println();
-        mySerial.println(formatString("hV * OTP check failed - First byte 0x%02x, expected 0x%04x", COG_data[0x00], _chipId));
-        while (0x01);
-    }
-}
+//     if (u_flagOTP == true)
+//     {
+//         printf("hV . OTP check passed");
+//     }
+//     else
+//     {
+//         printf();
+//         printf(formatString("hV * OTP check failed - First byte 0x%02x, expected 0x%04x", COG_data[0x00], _chipId));
+//         while (0x01);
+//     }
+// }
 
 void Screen_EPD_EXT3_Fast::COG_MediumP_initial(uint8_t updateMode)
 {
@@ -461,7 +462,7 @@ void Screen_EPD_EXT3_Fast::COG_SmallP_getDataOTP()
         case eScreen_EPD_290_KS_0F:
 
             u_flagOTP = true;
-            mySerial.println("hV . OTP check passed - embedded PSR");
+            printf("hV . OTP check passed - embedded PSR");
             return; // No PSR
             break;
 
@@ -482,17 +483,17 @@ void Screen_EPD_EXT3_Fast::COG_SmallP_getDataOTP()
 
     digitalWrite(b_pin.panelDC, LOW); // Command
     digitalWrite(b_pin.panelCS, LOW); // CS low = Select
-    hV_HAL_SPI3_write(0xa2);
+    // hV_HAL_SPI3_write(0xa2);
     digitalWrite(b_pin.panelCS, HIGH); // CS high = Unselect
     delay(10);
 
     digitalWrite(b_pin.panelDC, HIGH); // Data
     digitalWrite(b_pin.panelCS, LOW); // CS low = Select
-    ui8 = hV_HAL_SPI3_read(); // Dummy
+    // ui8 = hV_HAL_SPI3_read(); // Dummy
     digitalWrite(b_pin.panelCS, HIGH); // CS high = Unselect
 
     digitalWrite(b_pin.panelCS, LOW); // CS low = Select
-    ui8 = hV_HAL_SPI3_read(); // First byte to be checked
+    // ui8 = hV_HAL_SPI3_read(); // First byte to be checked
     digitalWrite(b_pin.panelCS, HIGH); // CS high = Unselect
 
     // Check bank
@@ -556,8 +557,8 @@ void Screen_EPD_EXT3_Fast::COG_SmallP_getDataOTP()
 
         default:
 
-            mySerial.println(formatString("hV * OTP check failed - Screen %i-%cS-0%c not supported", u_codeSize, u_codeFilm, u_codeDriver));
-            mySerial.flush();
+            printf("hV * OTP check failed - Screen %i-%cS-0%c not supported", u_codeSize, u_codeFilm, u_codeDriver);
+            fflush(stdout);
             while (true);
             break;
     }
@@ -568,21 +569,20 @@ void Screen_EPD_EXT3_Fast::COG_SmallP_getDataOTP()
         for (uint16_t index = 1; index < offsetA5; index += 1)
         {
             digitalWrite(b_pin.panelCS, LOW); // CS low = Select
-            ui8 = hV_HAL_SPI3_read();
+            // ui8 = hV_HAL_SPI3_read();
             digitalWrite(b_pin.panelCS, HIGH); // CS high = Unselect
         }
 
         digitalWrite(b_pin.panelCS, LOW); // CS low = Select
-        ui8 = hV_HAL_SPI3_read(); // First byte to be checked
+        // ui8 = hV_HAL_SPI3_read(); // First byte to be checked
         digitalWrite(b_pin.panelCS, HIGH); // CS high = Unselect
 
-        if (ui8 != 0xa5)
-        {
-            mySerial.println();
-            mySerial.println(formatString("hV * OTP check failed - Bank %i, first 0x%02x, expected 0x%02x", bank, ui8, 0xa5));
-            mySerial.flush();
-            while (0x01);
-        }
+        // if (ui8 != 0xa5)
+        // {
+        //     printf("hV * OTP check failed - Bank %i, first 0x%02x, expected 0x%02x", bank, ui8, 0xa5);
+        //     fflush(stdout);
+        //     while (0x01);
+        // }
     }
 
     switch (u_eScreen_EPD)
@@ -593,12 +593,12 @@ void Screen_EPD_EXT3_Fast::COG_SmallP_getDataOTP()
         // case eScreen_EPD_287_KS_09:
         case eScreen_EPD_287_PS_09:
 
-            mySerial.println(formatString("hV . OTP check passed - Bank %i, first 0x%02x %s", bank, ui8, (bank == 0) ? "as expected" : "not checked"));
+            printf("hV . OTP check passed - Bank %i, first 0x%02x %s", bank, ui8, (bank == 0) ? "as expected" : "not checked");
             break;
 
         default:
 
-            mySerial.println(formatString("hV . OTP check passed - Bank %i, first 0x%02x as expected", bank, ui8));
+            printf("hV . OTP check passed - Bank %i, first 0x%02x as expected", bank, ui8);
             break;
     }
 
@@ -606,7 +606,7 @@ void Screen_EPD_EXT3_Fast::COG_SmallP_getDataOTP()
     for (uint16_t index = offsetA5 + 1; index < offsetPSR; index += 1)
     {
         digitalWrite(b_pin.panelCS, LOW); // CS low = Select
-        ui8 = hV_HAL_SPI3_read();
+        // ui8 = hV_HAL_SPI3_read();
         digitalWrite(b_pin.panelCS, HIGH); // CS high = Unselect
     }
 
@@ -614,7 +614,7 @@ void Screen_EPD_EXT3_Fast::COG_SmallP_getDataOTP()
     for (uint16_t index = 0; index < _readBytes; index += 1)
     {
         digitalWrite(b_pin.panelCS, LOW); // CS low = Select
-        ui8 = hV_HAL_SPI3_read(); // Read OTP
+        // ui8 = hV_HAL_SPI3_read(); // Read OTP
         COG_data[index] = ui8;
         digitalWrite(b_pin.panelCS, HIGH); // CS high = Unselect
     }
@@ -803,7 +803,7 @@ void Screen_EPD_EXT3_Fast::begin()
 
         default:
 
-            debugVariant(FILM_P);
+            // debugVariant(FILM_P);
             break;
     }
 
@@ -821,8 +821,7 @@ void Screen_EPD_EXT3_Fast::begin()
     // Check panelCSS for large screens
     if (((u_codeSize == SIZE_969) or (u_codeSize == SIZE_1198)) and (b_pin.panelCSS == NOT_CONNECTED))
     {
-        mySerial.println();
-        mySerial.println("hV * Required pin panelCSS is NOT_CONNECTED");
+        printf("hV * Required pin panelCSS is NOT_CONNECTED");
         while (0x01);
     }
     //
@@ -974,19 +973,17 @@ void Screen_EPD_EXT3_Fast::begin()
 
         default:
 
-            mySerial.println();
-            mySerial.println(formatString("hV * Screen %i-%cS-0%c is not supported", u_codeSize, u_codeFilm, u_codeDriver));
+            printf("hV * Screen %i-%cS-0%c is not supported", u_codeSize, u_codeFilm, u_codeDriver);
             while (0x01);
             break;
     } // u_codeSize
     v_screenDiagonal = u_codeSize;
 
     // Report
-    mySerial.println(formatString("hV = Screen %s", WhoAmI().c_str()));
-    mySerial.println(formatString("hV = Size %ix%i", screenSizeX(), screenSizeY()));
-    mySerial.println(formatString("hV = Number %i-%cS-0%c", u_codeSize, u_codeFilm, u_codeDriver));
-    mySerial.println(formatString("hV = PDLS %s v%i.%i.%i", SCREEN_EPD_EXT3_VARIANT, SCREEN_EPD_EXT3_RELEASE / 100, (SCREEN_EPD_EXT3_RELEASE / 10) % 10, SCREEN_EPD_EXT3_RELEASE % 10));
-    mySerial.println();
+    printf("hV = Screen %s", WhoAmI().c_str());
+    printf("hV = Size %ix%i", screenSizeX(), screenSizeY());
+    printf("hV = Number %i-%cS-0%c", u_codeSize, u_codeFilm, u_codeDriver);
+    printf("hV = PDLS %s v%i.%i.%i", SCREEN_EPD_EXT3_VARIANT, SCREEN_EPD_EXT3_RELEASE / 100, (SCREEN_EPD_EXT3_RELEASE / 10) % 10, SCREEN_EPD_EXT3_RELEASE % 10);
 
     u_bufferDepth = v_screenColourBits; // 2 colours
     u_bufferSizeV = v_screenSizeV; // vertical = wide size
@@ -1125,14 +1122,14 @@ void Screen_EPD_EXT3_Fast::s_getDataOTP()
 {
     hV_HAL_SPI_end(); // With unicity check
 
-    hV_HAL_SPI3_begin(); // Define 3-wire SPI pins
+    // hV_HAL_SPI3_begin(); // Define 3-wire SPI pins
 
     // Get data OTP
     switch (b_family)
     {
         case FAMILY_MEDIUM:
 
-            COG_MediumP_getDataOTP();
+            // COG_MediumP_getDataOTP();
             break;
 
         case FAMILY_SMALL:
@@ -1198,8 +1195,7 @@ uint8_t Screen_EPD_EXT3_Fast::flushMode(uint8_t updateMode)
 
         default:
 
-            mySerial.println();
-            mySerial.println("hV ! PDLS - UPDATE_NONE invoked");
+            printf("hV ! PDLS - UPDATE_NONE invoked");
             break;
     }
 
@@ -1275,16 +1271,15 @@ void Screen_EPD_EXT3_Fast::s_setPoint(uint16_t x1, uint16_t y1, uint16_t colour)
     uint32_t z1 = s_getZ(x1, y1);
     uint16_t b1 = s_getB(x1, y1);
 
-    // Basic colours
-    if ((colour == myColours.white) xor u_invert)
+  if ((colour == myColours.white) ^ u_invert) // 'xor' is '^' in C/C++
     {
         // physical black 0-0
-        bitClear(s_newImage[z1], b1);
+        s_newImage[z1] &= ~(1UL << b1); // Equivalent to bitClear(s_newImage[z1], b1);
     }
-    else if ((colour == myColours.black) xor u_invert)
+    else if ((colour == myColours.black) ^ u_invert)
     {
         // physical white 1-0
-        bitSet(s_newImage[z1], b1);
+        s_newImage[z1] |= (1UL << b1);  // Equivalent to bitSet(s_newImage[z1], b1);
     }
 }
 

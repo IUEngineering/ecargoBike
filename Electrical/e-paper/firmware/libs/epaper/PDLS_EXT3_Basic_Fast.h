@@ -35,8 +35,6 @@
 ///
 
 // SDK
-#include <Arduino.h>
-
 #ifndef PDLS_EXT3_BASIC_FAST_RELEASE
 ///
 /// @brief Library release number
