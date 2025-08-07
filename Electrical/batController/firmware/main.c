@@ -156,8 +156,9 @@ bool send_can_data_callback(repeating_timer_t *rt) {
         }
     };
 
-    if (measurement_data.voltage < 31.000f && timerCounter >= 10) {
+    if (measurement_data.voltage < 31.000f && timerCounter >= 20) {
         underVoltageEvent = true;
+        printf("oh nee!!!!\n");
     }
 
     if (!underVoltageEvent) {
@@ -175,10 +176,10 @@ int main() {
     stdio_init_all();
     setup_ws2812();
 
-    while (!tud_cdc_connected()) {
-        printf(".");
-        sleep_ms(500);
-    }
+    // while (!tud_cdc_connected()) {
+    //     printf(".");
+    //     sleep_ms(500);
+    // }
     put_rgb(255, 0, 0); // Red
     sleep_ms(500);
     put_rgb(0, 255, 0); // Green
